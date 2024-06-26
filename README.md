@@ -1,5 +1,16 @@
-# AdresseAPI
- 
+<https://learn.microsoft.com/en-us/power-apps/developer/component-framework/create-custom-controls-using-pcf>
+
+https://dianabirkelbach.wordpress.com/2020/04/28/pcf-solution-packaging-unmanaged-production-release/
+
+# LEI API
+
+## Disclamor
+
+The component is intended to integrate with with gleif.org's services. You may use the API (Application Programming Interface) only for lawful purposes and in compliance with all applicable laws and regulations.
+
+<https://github.com/FrederickGrobost/PCF-Pappers-autocomplete/blob/main/ICKPappers/index.ts>
+<https://github.com/AndrewButenko/GoogleAddressAutocomplete_PCF/blob/master/AddressAutocomplete/index.ts>
+<https://github.com/waretec-it/google-places-autocomplete>
 Installation step by step : 
 
 1. Import the managed solution contains in "AddressAPI_Solution\bin\Release\AddressAPI_Solution.zip" on your CRM  
