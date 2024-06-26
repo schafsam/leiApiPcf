@@ -19,6 +19,12 @@
     </external-service-usage>
     <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
     <property name="address_line_1" display-name-key="address_line_1" description-key="address_line_1" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="account_name" display-name-key="account name" description-key="account name" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="country_code" display-name-key="country code" description-key="country code" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="city" display-name-key="city" description-key="city" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="postcode" display-name-key="postcode" description-key="postcode" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="registered_as" display-name-key="registered as" description-key="registered as" of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="lei_code" display-name-key="lei_code" description-key="lei_code" of-type="SingleLine.Text" usage="bound" required="true" />
     <resources>
       <code path="index.ts" order="1"/>
       <css path="css/style.css" order="1" />

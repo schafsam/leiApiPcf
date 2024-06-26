@@ -7,8 +7,13 @@ interface Dic {
 
 interface Provider {
     name: string,
-    highlight: string,
+    highlighting: string,
     lei: string,
+    addressLine?: string,
+    city?: string,
+    postalCode?: string,
+    countryCode?: string,
+    registeredAs?: string,
     link: string
 }
 
@@ -59,8 +64,8 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
         this.elementHover = false;
         this.datas = {};
 		
-		if (this._context.parameters.address_line_1.raw) 
-			this._account_name = this._context.parameters.account_name.raw;
+		if (this._context.parameters.account_name.raw) 
+			this._account_name = this._context.parameters.account_name.raw as string;
         
         if(this._context.parameters.account_name.attributes?.LogicalName)
             this._name = this._context.parameters.account_name.attributes?.LogicalName;
@@ -70,7 +75,7 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
         this._value = this._account_name;
 
 
-        this._country = this._context.parameters.country.raw ? this._context.parameters.country.raw : "FRANCE";
+        this._country = this._context.parameters.country_code.raw ? this._context.parameters.country_code.raw : "FRANCE";
 
         this.listElement = document.createElement("div");
         this.listElement.setAttribute("id", this._name +"_accountList" );
@@ -87,7 +92,6 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
             this._account_name = "---" ;
         this.inputElement.addEventListener("keyup", this.onKeyUp.bind(this));
 
-
         this.inputElement.addEventListener("focusin", () => {
             this.inputElement.className = "InputAddressFocused";
             if (this.inputElement.value == "---") this.inputElement.value = "";
@@ -95,7 +99,7 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
         this.inputElement.addEventListener("focusout", () => {
             this.inputElement.className = "InputAddress";
             if (this.inputElement.value == "") this.inputElement.value = "---";
-        });      
+        });
 
         container.addEventListener("focusout", () => {
             if(!this.elementHover){
@@ -147,6 +151,10 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
         }
 
         this._value = this.inputElement.value;
+
+        if (this._value.length < 3){
+            return;
+        }
         
         var url = 'https://api.gleif.org/api/v1/autocompletions?field=fulltext&q=' + encodeURIComponent(this._value);
         var key: any;
@@ -156,42 +164,57 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
         ).done(function (info) {
 
             if (info && info.data) {
-
+                
                 (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).innerHTML = "";
                 (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).hidden = false;
 
-                for (key in info.data) {
-
-                    if (info.data[key]) {
-                        let item: Provider = {
-                            name : info.data[key].attributes.value,
-                            highlight: info.data[key].attributes.highlight,
-                            lei: info.data[key].relationships["lei-records"].data.id,
-                            link: info.data[key].relationships["lei-records"].links.related,
-                        }
-
-                        let newDiv: HTMLDivElement;
-                        newDiv = document.createElement("div");
-                        newDiv.textContent = item.name;
-                        newDiv.addEventListener("click", function () {
-                            /*insert the value for the autocomplete text field:*/
-                            (<HTMLInputElement>document.getElementById(self._name +"_search_field")).value = this.getElementsByTagName("input")[0].value;                       
-                            (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).innerHTML = this.getElementsByTagName("input")[0].id;
-                            (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).hidden = true;
-                            $(document).trigger('IssuesReceived');
-                        });
-                        newDiv.addEventListener("mouseover", function () {self.elementHover = true;})
-                        newDiv.addEventListener("mouseout", function () {self.elementHover = false;})
-                        let newOptionTest: HTMLInputElement;
-                        newOptionTest = document.createElement("input");
-                        newOptionTest.setAttribute("type", "hidden");
-                        newOptionTest.setAttribute("value", item.name);
-                        newOptionTest.setAttribute("id", item.lei);
-                        self.datas[item.lei] = item;
-                        newDiv.appendChild(newOptionTest);
-                        //divAdresseList.appendChild(newDiv);
-                        (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).appendChild(newDiv);
+                for (const element of info.data) {
+                    if (!("relationships" in element)){
+                        continue;
                     }
+                    let item: Provider = {
+                        name : element.attributes.value,
+                        highlighting: element.attributes.highlighting,
+                        lei: element.relationships["lei-records"].data.id,
+                        link: element.relationships["lei-records"].links.related,
+                    }
+                    self.datas[item.lei] = item;
+                    const url_ = element.relationships["lei-records"].links.related;
+                    $.getJSON(url_).done(function (info) {
+                        item.city = info.data.attributes.entity.legalAddress.city;
+                        item.countryCode = info.data.attributes.entity.legalAddress.country;
+                        item.addressLine = info.data.attributes.entity.legalAddress.addressLines[0];
+                        item.postalCode = info.data.attributes.entity.legalAddress.postalCode;
+                        item.registeredAs = info.data.attributes.entity.registeredAs;
+                        let div_ = document.getElementById(item.lei);
+                        if (div_) {
+                            div_.textContent = (item.city || "") + ", " + (item.countryCode || "");
+                        }
+                    })
+                    let newDiv: HTMLDivElement;
+                    newDiv = document.createElement("div");
+                    newDiv.innerHTML = item.highlighting;
+                    newDiv.addEventListener("click", function () {
+                        /*insert the value for the autocomplete text field:*/
+                        (<HTMLInputElement>document.getElementById(self._name +"_search_field")).value = this.getElementsByTagName("input")[0].value;                       
+                        (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).innerHTML = this.getElementsByTagName("input")[0].id;
+                        (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).hidden = true;
+                        $(document).trigger('IssuesReceived');
+                    });
+                    newDiv.addEventListener("mouseover", function () {self.elementHover = true;})
+                    newDiv.addEventListener("mouseout", function () {self.elementHover = false;})
+                    let newDivText: HTMLDivElement;
+                    newDivText = document.createElement("div");
+                    newDivText.setAttribute("id", item.lei);
+                    newDivText.textContent = (item.city || "") + ", " + (item.countryCode || "");
+                    newDiv.appendChild(newDivText);
+                    let newOptionTest: HTMLInputElement;
+                    newOptionTest = document.createElement("input");
+                    newOptionTest.setAttribute("type", "hidden");
+                    newOptionTest.setAttribute("value", item.name);
+                    newOptionTest.setAttribute("id", item.lei);
+                    newDiv.appendChild(newOptionTest);
+                    (<HTMLDivElement>document.getElementById(self._name +"_accountList" )).appendChild(newDiv);
                 }
             }
         });
@@ -200,25 +223,18 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
 
     public selectValue(): void {
         let data = (<HTMLDataListElement>document.getElementById(this._name +"_accountList" )).innerHTML;
-        if (!data.startsWith("<div")) {
-            if(data != "" && this.datas[data])
-            {
-                const response = await fetch(this.datas[data].link);
-                const obj = await response.json();
-                const entity = obj.data.attributes.entity;
-                
-                this._lei_code = obj.data.id;
-                this._value = entity.legalName.name;
-                this._account_name = entity.legalName.name;
-                this.inputElement.value = entity.name;
-                this._address_line = entity.legalAddress.addressLines.join(" ");
-                this._city = entity.legalAddress.city;
-                this._postcode = entity.legalAddress.postalCode;
-                this._countrycode = entity.legalAddress.country;
-                this._registered_as = entity.registeredAs;
-                this._notifyOutputChanged();
-            }
-
+        if (!data.startsWith("<div") && data != "") {
+            const selectedItem = this.datas[data];
+            this.inputElement.value = selectedItem.name;
+            this._account_name = (selectedItem.name|| "");
+            this._address_line = (selectedItem.addressLine || "");
+            this._postcode = (selectedItem.postalCode || "");
+            this._city = (selectedItem.city || "");
+            this._countrycode = (selectedItem.countryCode|| "");
+            this._registered_as= (selectedItem.registeredAs || "");
+            this._lei_code = data;
+            this._value = this._account_name;
+            this._notifyOutputChanged();
         }        
     }
 
@@ -249,7 +265,7 @@ export class LeiApi implements ComponentFramework.StandardControl<IInputs, IOutp
             address_line_1: this._address_line,
             city: this._city,
             postcode: this._postcode,
-            country: this._countrycode,
+            country_code: this._countrycode,
             registered_as: this._registered_as,
             lei_code: this._lei_code
         }
