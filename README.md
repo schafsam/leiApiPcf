@@ -3,7 +3,7 @@
 
 This is a Power Apps Component that creates a text field which uses
 autocomplete based on data from the API at
-[gleif.org](https://www.gleif.org/api/):
+[gleif.org](https://documenter.getpostman.com/view/7679680/SVYrrxuU?version=latest):
 
 ## Disclaimer
 
