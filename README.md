@@ -7,7 +7,7 @@ autocomplete based on data from the API at
 
 ## Disclaimer
 
-The component is intended to integrate with with gleif.org's services. You may use the API (Application Programming Interface) only for lawful purposes and in compliance with all applicable laws and regulations.
+The component is intended to integrate with gleif.org's services. You may use the API (Application Programming Interface) only for lawful purposes and in compliance with all applicable laws and regulations.
 
 ## Demo
 
