@@ -11,4 +11,4 @@ The component is intended to integrate with gleif.org's services. You may use th
 
 ## Demo
 
-todo df
+todo: add image
